@@ -47,9 +47,11 @@ def main():
             
             # Extract name
             if not book.get('name'):
-                name_match = re.search(r'<h1 class="product_title entry-title">([^<]+)</h1>', html)
+                name_match = re.search(r'<title>(.*?)</title>', html)
                 if name_match:
-                    book['name'] = name_match.group(1).strip()
+                    name = name_match.group(1).replace(' - סיפור חוזר', '').replace('&#8211;', '-').strip()
+                    if name:
+                        book['name'] = name
             
             # Extract image
             if not book.get('image'):
