@@ -1,26 +1,26 @@
 [
     {
         "url": "https://rebooks.org.il/product/%d7%a4%d7%a8%d7%95%d7%99%d7%a7%d7%98-%d7%94%d7%99%d7%99%d7%9c-%d7%9e%d7%a8%d7%99/",
-        "name": "",
+        "name": "פרויקט הייל מרי",
         "image": "",
         "in_stock": false,
-        "last_checked": "2026-04-27 19:32:18",
+        "last_checked": "2026-04-27 19:48:23",
         "product_id": "2027"
     },
     {
         "url": "https://rebooks.org.il/product/%d7%aa%d7%97%d7%a9%d7%95%d7%91-%d7%9b%d7%9e%d7%95-%d7%9e%d7%a0%d7%a6%d7%97/",
-        "name": "",
+        "name": "תחשוב כמו מנצח",
         "image": "",
         "in_stock": false,
-        "last_checked": "2026-04-27 19:32:22",
+        "last_checked": "2026-04-27 19:48:28",
         "product_id": "566976"
     },
     {
         "url": "https://rebooks.org.il/product/%d7%94%d7%94%d7%91%d7%98%d7%97%d7%94-2/",
-        "name": "",
+        "name": "ההבטחה",
         "image": "https://rebooks.org.il/wp-content/uploads/2023/11/WrImL7ww0AoFHMqV.jpeg",
         "in_stock": true,
-        "last_checked": "2026-04-27 19:32:25",
+        "last_checked": "2026-04-27 19:48:32",
         "product_id": "233290"
     }
 ]
