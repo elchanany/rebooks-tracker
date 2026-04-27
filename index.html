@@ -229,7 +229,7 @@
                         buyButtonHtml = `<a href="https://rebooks.org.il/?add-to-cart=${book.product_id}" target="_blank" class="btn btn-buy">קנה עכשיו (קליק אחד)</a>`;
                     }
 
-                    const fallbackImage = 'https://via.placeholder.com/250x350?text=No+Image';
+                    const fallbackImage = 'https://placehold.co/250x350/1e293b/94a3b8?text=אין+תמונה+זמינה';
 
                     card.innerHTML = `
                         <img src="${book.image || fallbackImage}" alt="${book.name || 'ספר'}" class="card-img" onerror="this.src='${fallbackImage}'">
