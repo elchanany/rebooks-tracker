@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>צייד הספרים שלי</title>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #3b82f6;
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
+        body {
+            font-family: 'Heebo', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+                radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin: 0;
+            background: linear-gradient(to right, #60a5fa, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        p.subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            margin-top: 0.5rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .card-img {
+            width: 100%;
+            height: 250px;
+            object-fit: contain;
+            background: rgba(0,0,0,0.2);
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+
+        .card-content {
+            padding: 1.5rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .book-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0 0 1rem 0;
+            line-height: 1.4;
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            width: fit-content;
+        }
+
+        .status.in-stock {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status.out-of-stock {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .status::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-left: 8px;
+        }
+
+        .status.in-stock::before { background: #34d399; box-shadow: 0 0 8px #34d399; }
+        .status.out-of-stock::before { background: #f87171; }
+
+        .last-checked {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .actions {
+            margin-top: 1rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.2s;
+            flex-grow: 1;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+        .btn-primary:hover { background: #2563eb; }
+
+        .btn-buy {
+            background: var(--success);
+            color: white;
+        }
+        .btn-buy:hover { background: #059669; }
+
+        /* Loader */
+        .loader {
+            text-align: center;
+            padding: 3rem;
+            font-size: 1.2rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>צייד הספרים</h1>
+            <p class="subtitle">מערכת חכמה למעקב אחר מלאי בסיפור חוזר - מתעדכן אוטומטית 24/7</p>
+        </header>
+
+        <div id="loader" class="loader">
+            טוען נתונים...
+        </div>
+
+        <div id="grid" class="grid">
+            <!-- Books will be injected here -->
+        </div>
+    </div>
+
+    <script>
+        async function loadBooks() {
+            try {
+                // Add timestamp to prevent caching
+                const response = await fetch(`books.json?t=${new Date().getTime()}`);
+                const books = await response.json();
+                
+                const grid = document.getElementById('grid');
+                const loader = document.getElementById('loader');
+                
+                loader.style.display = 'none';
+                
+                books.forEach(book => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    
+                    const isStock = book.in_stock;
+                    const statusClass = isStock ? 'in-stock' : 'out-of-stock';
+                    const statusText = isStock ? 'במלאי! לקנות מהר' : 'אזל מהמלאי - במעקב';
+                    
+                    let buyButtonHtml = '';
+                    if (isStock && book.product_id) {
+                        buyButtonHtml = `<a href="https://rebooks.org.il/?add-to-cart=${book.product_id}" target="_blank" class="btn btn-buy">קנה עכשיו (קליק אחד)</a>`;
+                    }
+
+                    const fallbackImage = 'https://via.placeholder.com/250x350?text=No+Image';
+
+                    card.innerHTML = `
+                        <img src="${book.image || fallbackImage}" alt="${book.name || 'ספר'}" class="card-img" onerror="this.src='${fallbackImage}'">
+                        <div class="card-content">
+                            <h2 class="book-title">${book.name || 'ממתין לסריקה ראשונה...'}</h2>
+                            <div class="status ${statusClass}">${statusText}</div>
+                            
+                            <div class="actions">
+                                <a href="${book.url}" target="_blank" class="btn btn-primary">עמוד הספר</a>
+                                ${buyButtonHtml}
+                            </div>
+
+                            <div class="last-checked">
+                                נבדק לאחרונה: ${book.last_checked || 'טרם נבדק'}
+                            </div>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+
+            } catch (error) {
+                console.error("Error loading books:", error);
+                document.getElementById('loader').innerText = "שגיאה בטעינת הנתונים. ודא שקובץ books.json קיים.";
+            }
+        }
+
+        loadBooks();
+    </script>
+</body>
+</html>
