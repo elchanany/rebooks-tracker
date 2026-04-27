@@ -34,7 +34,15 @@ def main():
             import random
             bypass_url = url + (f"?v={random.randint(1000,9999)}" if '?' not in url else f"&v={random.randint(1000,9999)}")
             
-            req = urllib.request.Request(bypass_url, headers={'User-Agent': 'Mozilla/5.0'})
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                'Accept-Language': 'he-IL,he;q=0.9,en-US;q=0.8,en;q=0.7',
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache'
+            }
+            
+            req = urllib.request.Request(bypass_url, headers=headers)
             html = urllib.request.urlopen(req).read().decode('utf-8')
             
             # Extract name
