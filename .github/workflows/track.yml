@@ -4,7 +4,12 @@ on:
   schedule:
     # Run every 5 minutes
     - cron: '*/5 * * * *'
-  workflow_dispatch: # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      new_book_url:
+        description: 'קישור לספר חדש להוספה (אופציונלי - השאר ריק לסריקה רגילה)'
+        required: false
+        default: ''
 
 jobs:
   build:
@@ -23,6 +28,7 @@ jobs:
       env:
         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        NEW_BOOK_URL: ${{ github.event.inputs.new_book_url }}
       run: |
         python tracker.py
         

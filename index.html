@@ -14,7 +14,10 @@
             --accent: #3b82f6;
             --success: #10b981;
             --error: #ef4444;
+            --purple: #a855f7;
         }
+
+        * { box-sizing: border-box; }
 
         body {
             font-family: 'Heebo', sans-serif;
@@ -38,7 +41,7 @@
 
         header {
             text-align: center;
-            margin-bottom: 3rem;
+            margin-bottom: 2rem;
             padding: 2rem 0;
             border-bottom: 1px solid rgba(255,255,255,0.1);
         }
@@ -57,6 +60,178 @@
             font-size: 1.1rem;
             margin-top: 0.5rem;
         }
+
+        /* Add Book Section */
+        .add-book-section {
+            margin-bottom: 2.5rem;
+        }
+
+        .add-book-toggle {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        .add-book-toggle button {
+            background: linear-gradient(135deg, var(--purple), var(--accent));
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 9999px;
+            font-family: 'Heebo', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
+        }
+
+        .add-book-toggle button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(168, 85, 247, 0.5);
+        }
+
+        .add-book-form {
+            display: none;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 1rem;
+            padding: 1.5rem 2rem;
+            animation: slideDown 0.3s ease;
+        }
+
+        .add-book-form.visible {
+            display: block;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 0 0 1rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 0.75rem;
+            align-items: stretch;
+        }
+
+        .form-row input {
+            flex: 1;
+            padding: 0.85rem 1.2rem;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 0.75rem;
+            color: var(--text-color);
+            font-family: 'Heebo', sans-serif;
+            font-size: 1rem;
+            direction: ltr;
+            text-align: left;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .form-row input:focus {
+            border-color: var(--purple);
+            box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15);
+        }
+
+        .form-row input::placeholder {
+            color: var(--text-muted);
+            direction: rtl;
+            text-align: right;
+        }
+
+        .form-row button {
+            padding: 0.85rem 1.5rem;
+            background: var(--success);
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            font-family: 'Heebo', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .form-row button:hover {
+            background: #059669;
+            transform: translateY(-1px);
+        }
+
+        .form-row button:disabled {
+            background: #475569;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .form-hint {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 0.75rem;
+        }
+
+        .form-message {
+            margin-top: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .form-message.success {
+            display: block;
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #34d399;
+        }
+
+        .form-message.error {
+            display: block;
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #f87171;
+        }
+
+        /* Stats bar */
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+
+        .stat-value {
+            font-weight: 700;
+            font-size: 1.3rem;
+        }
+
+        .stat-value.in-stock { color: #34d399; }
+        .stat-value.out-of-stock { color: #f87171; }
+        .stat-value.total { color: #60a5fa; }
 
         .grid {
             display: grid;
@@ -89,6 +264,18 @@
             background: rgba(0,0,0,0.2);
             padding: 1rem;
             box-sizing: border-box;
+        }
+
+        .no-image-placeholder {
+            width: 100%;
+            height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.2);
+            color: var(--text-muted);
+            font-size: 1rem;
+            font-weight: 300;
         }
 
         .card-content {
@@ -137,8 +324,13 @@
             margin-left: 8px;
         }
 
-        .status.in-stock::before { background: #34d399; box-shadow: 0 0 8px #34d399; }
+        .status.in-stock::before { background: #34d399; box-shadow: 0 0 8px #34d399; animation: pulse 2s infinite; }
         .status.out-of-stock::before { background: #f87171; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
 
         .last-checked {
             font-size: 0.8rem;
@@ -178,6 +370,20 @@
         }
         .btn-buy:hover { background: #059669; }
 
+        .btn-delete {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid rgba(255,255,255,0.1);
+            flex-grow: 0;
+            padding: 0.75rem;
+            font-size: 0.8rem;
+        }
+        .btn-delete:hover { 
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
         /* Loader */
         .loader {
             text-align: center;
@@ -185,36 +391,237 @@
             font-size: 1.2rem;
             color: var(--text-muted);
         }
+
+        .loader .spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-left: 0.5rem;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem 0;
+            margin-top: 2rem;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        @media (max-width: 640px) {
+            h1 { font-size: 2rem; }
+            .container { padding: 1rem; }
+            .form-row { flex-direction: column; }
+            .stats-bar { gap: 1rem; }
+        }
     </style>
 </head>
 <body>
 
     <div class="container">
         <header>
-            <h1>צייד הספרים</h1>
+            <h1>📚 צייד הספרים</h1>
             <p class="subtitle">מערכת חכמה למעקב אחר מלאי בסיפור חוזר - מתעדכן אוטומטית 24/7</p>
         </header>
 
+        <!-- Stats Bar -->
+        <div id="stats" class="stats-bar" style="display:none;"></div>
+
+        <!-- Add Book Section -->
+        <div class="add-book-section">
+            <div class="add-book-toggle">
+                <button onclick="toggleAddForm()" id="addBookBtn">
+                    <span>➕</span>
+                    <span>הוסף ספר למעקב</span>
+                </button>
+            </div>
+
+            <div id="addBookForm" class="add-book-form">
+                <h3 class="form-title">📖 הוספת ספר חדש למעקב</h3>
+                <div class="form-row">
+                    <input type="text" id="newBookUrl" placeholder="הדבק כאן קישור מסיפור חוזר..." dir="ltr">
+                    <button onclick="addBook()" id="addBtn">הוסף ספר</button>
+                </div>
+                <p class="form-hint">
+                    💡 מדביקים את הקישור לעמוד הספר מהאתר 
+                    <a href="https://rebooks.org.il" target="_blank" style="color:var(--accent);">rebooks.org.il</a>
+                    והמערכת תזהה אוטומטית את השם, התמונה, ומצב המלאי.
+                </p>
+                <div id="formMessage" class="form-message"></div>
+            </div>
+        </div>
+
         <div id="loader" class="loader">
-            טוען נתונים...
+            <span class="spinner"></span> טוען נתונים...
         </div>
 
         <div id="grid" class="grid">
             <!-- Books will be injected here -->
         </div>
+
+        <footer>
+            סריקה אוטומטית כל 5 דקות · עובד על 
+            <a href="https://github.com/elchanany/rebooks-tracker" target="_blank">GitHub Actions</a>
+            · התראות לטלגרם
+        </footer>
     </div>
 
     <script>
+        const REPO_OWNER = 'elchanany';
+        const REPO_NAME = 'rebooks-tracker';
+        
+        function toggleAddForm() {
+            const form = document.getElementById('addBookForm');
+            form.classList.toggle('visible');
+            const btn = document.getElementById('addBookBtn');
+            if (form.classList.contains('visible')) {
+                btn.querySelector('span:first-child').textContent = '✖️';
+                btn.querySelector('span:last-child').textContent = 'סגור';
+                document.getElementById('newBookUrl').focus();
+            } else {
+                btn.querySelector('span:first-child').textContent = '➕';
+                btn.querySelector('span:last-child').textContent = 'הוסף ספר למעקב';
+            }
+        }
+
+        function showMessage(text, type) {
+            const msg = document.getElementById('formMessage');
+            msg.textContent = text;
+            msg.className = 'form-message ' + type;
+        }
+
+        function addBook() {
+            const urlInput = document.getElementById('newBookUrl');
+            const url = urlInput.value.trim();
+            const addBtn = document.getElementById('addBtn');
+            
+            // Validate URL
+            if (!url) {
+                showMessage('⚠️ נא להדביק קישור לספר', 'error');
+                return;
+            }
+
+            if (!url.includes('rebooks.org.il')) {
+                showMessage('⚠️ הקישור חייב להיות מאתר rebooks.org.il', 'error');
+                return;
+            }
+
+            if (!url.includes('/product/')) {
+                showMessage('⚠️ הקישור חייב להיות לעמוד ספר ספציפי (לדוגמה: rebooks.org.il/product/שם-הספר)', 'error');
+                return;
+            }
+
+            // Check for duplicates
+            const existingCards = document.querySelectorAll('.card a.btn-primary');
+            for (const card of existingCards) {
+                if (card.href.replace(/\/$/, '') === url.replace(/\/$/, '')) {
+                    showMessage('⚠️ הספר הזה כבר נמצא במעקב!', 'error');
+                    return;
+                }
+            }
+
+            addBtn.disabled = true;
+            addBtn.textContent = 'מוסיף...';
+
+            // Open GitHub Actions workflow dispatch page with the URL
+            const actionsUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/actions/workflows/track.yml`;
+            
+            // Show success and instructions
+            showMessage('✅ קישור תקין! עוברים לגיטהאב להפעיל את הסריקה...', 'success');
+            
+            setTimeout(() => {
+                // Create a temporary preview card
+                addPreviewCard(url);
+                
+                // Copy the URL to clipboard
+                navigator.clipboard.writeText(url).catch(() => {});
+                
+                // Open the workflow dispatch page
+                window.open(actionsUrl, '_blank');
+                
+                showMessage(
+                    '✅ נפתח חלון גיטהאב! לחץ על "Run workflow", הדבק את הקישור בשדה הטקסט, ולחץ שוב על "Run workflow" הירוק. הספר יתווסף אוטומטית תוך דקה!',
+                    'success'
+                );
+                
+                addBtn.disabled = false;
+                addBtn.textContent = 'הוסף ספר';
+                urlInput.value = '';
+            }, 1000);
+        }
+
+        function addPreviewCard(url) {
+            const grid = document.getElementById('grid');
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.style.border = '1px dashed rgba(168, 85, 247, 0.5)';
+            
+            card.innerHTML = `
+                <div class="no-image-placeholder" style="color: var(--purple);">
+                    <span class="spinner" style="border-top-color: var(--purple);"></span>
+                    &nbsp; ממתין לסריקה...
+                </div>
+                <div class="card-content">
+                    <h2 class="book-title" style="color: var(--purple);">ספר חדש - בתהליך הוספה</h2>
+                    <div class="status out-of-stock">ממתין לסריקה ראשונה</div>
+                    
+                    <div class="actions">
+                        <a href="${url}" target="_blank" class="btn btn-primary">עמוד הספר</a>
+                    </div>
+
+                    <div class="last-checked">
+                        הוסף עכשיו - ממתין לסריקה ראשונה
+                    </div>
+                </div>
+            `;
+            grid.appendChild(card);
+        }
+
         async function loadBooks() {
             try {
-                // Add timestamp to prevent caching
                 const response = await fetch(`books.json?t=${new Date().getTime()}`);
                 const books = await response.json();
                 
                 const grid = document.getElementById('grid');
                 const loader = document.getElementById('loader');
+                const stats = document.getElementById('stats');
                 
                 loader.style.display = 'none';
+
+                // Stats
+                const totalBooks = books.length;
+                const inStockCount = books.filter(b => b.in_stock).length;
+                const outOfStockCount = totalBooks - inStockCount;
+                
+                stats.style.display = 'flex';
+                stats.innerHTML = `
+                    <div class="stat-item">
+                        <span class="stat-value total">${totalBooks}</span>
+                        <span>ספרים במעקב</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value in-stock">${inStockCount}</span>
+                        <span>במלאי</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value out-of-stock">${outOfStockCount}</span>
+                        <span>אזל מהמלאי</span>
+                    </div>
+                `;
                 
                 books.forEach(book => {
                     const card = document.createElement('div');
@@ -222,23 +629,29 @@
                     
                     const isStock = book.in_stock;
                     const statusClass = isStock ? 'in-stock' : 'out-of-stock';
-                    const statusText = isStock ? 'במלאי! לקנות מהר' : 'אזל מהמלאי - במעקב';
+                    const statusText = isStock ? '✅ במלאי! לקנות מהר' : '❌ אזל מהמלאי - במעקב';
                     
                     let buyButtonHtml = '';
                     if (isStock && book.product_id) {
-                        buyButtonHtml = `<a href="https://rebooks.org.il/?add-to-cart=${book.product_id}" target="_blank" class="btn btn-buy">קנה עכשיו (קליק אחד)</a>`;
+                        buyButtonHtml = `<a href="https://rebooks.org.il/?add-to-cart=${book.product_id}" target="_blank" class="btn btn-buy">🛒 קנה עכשיו</a>`;
                     }
 
-                    const fallbackImage = 'https://placehold.co/250x350/1e293b/94a3b8?text=אין+תמונה+זמינה';
+                    // Image or placeholder
+                    let imageHtml;
+                    if (book.image) {
+                        imageHtml = `<img src="${book.image}" alt="${book.name || 'ספר'}" class="card-img" onerror="this.parentElement.innerHTML='<div class=\\'no-image-placeholder\\'>📷 אין תמונה זמינה</div>'">`;
+                    } else {
+                        imageHtml = `<div class="no-image-placeholder">📷 אין תמונה זמינה</div>`;
+                    }
 
                     card.innerHTML = `
-                        <img src="${book.image || fallbackImage}" alt="${book.name || 'ספר'}" class="card-img" onerror="this.src='${fallbackImage}'">
+                        ${imageHtml}
                         <div class="card-content">
                             <h2 class="book-title">${book.name || 'ממתין לסריקה ראשונה...'}</h2>
                             <div class="status ${statusClass}">${statusText}</div>
                             
                             <div class="actions">
-                                <a href="${book.url}" target="_blank" class="btn btn-primary">עמוד הספר</a>
+                                <a href="${book.url}" target="_blank" class="btn btn-primary">📖 עמוד הספר</a>
                                 ${buyButtonHtml}
                             </div>
 
@@ -252,9 +665,19 @@
 
             } catch (error) {
                 console.error("Error loading books:", error);
-                document.getElementById('loader').innerText = "שגיאה בטעינת הנתונים. ודא שקובץ books.json קיים.";
+                document.getElementById('loader').innerHTML = "❌ שגיאה בטעינת הנתונים. ודא שקובץ books.json קיים.";
             }
         }
+
+        // Handle Enter key in URL input
+        document.addEventListener('DOMContentLoaded', () => {
+            const input = document.getElementById('newBookUrl');
+            if (input) {
+                input.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') addBook();
+                });
+            }
+        });
 
         loadBooks();
     </script>
