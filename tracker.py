@@ -1,236 +1,148 @@
-import urllib.request
-import urllib.parse
-import json
-import re
-import os
-import datetime
-import sys
+import urllib.request, urllib.parse, json, re, os, datetime, time, subprocess, sys, random
 
 TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
 TELEGRAM_CHAT_ID = os.environ.get('TELEGRAM_CHAT_ID')
+CHECK_INTERVAL = 30  # seconds between checks
+MAX_DURATION = 5 * 3600 + 50 * 60  # 5 hours 50 minutes
 
-def send_telegram_message(message):
+HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept-Language': 'he-IL,he;q=0.9,en-US;q=0.8',
+    'Cache-Control': 'no-cache'
+}
+
+def send_telegram(msg):
     if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
-        print("⚠️  Telegram credentials missing, skipping notification.")
-        return
-    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-    data = urllib.parse.urlencode({'chat_id': TELEGRAM_CHAT_ID, 'text': message, 'parse_mode': 'HTML'}).encode('utf-8')
+        print("  ⚠️ Telegram not configured"); return
     try:
-        req = urllib.request.Request(url, data=data)
-        urllib.request.urlopen(req)
-        print("✅ Sent Telegram notification.")
+        data = urllib.parse.urlencode({'chat_id': TELEGRAM_CHAT_ID, 'text': msg, 'parse_mode': 'HTML'}).encode()
+        urllib.request.urlopen(urllib.request.Request(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage", data=data))
+        print("  ✅ Telegram sent!")
     except Exception as e:
-        print(f"❌ Failed to send Telegram message: {e}")
+        print(f"  ❌ Telegram error: {e}")
 
-def fetch_page(url):
-    """Fetch a page with browser-like headers to bypass bot protection."""
-    import random
-    bypass_url = url + (f"?v={random.randint(1000,9999)}" if '?' not in url else f"&v={random.randint(1000,9999)}")
-    
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'he-IL,he;q=0.9,en-US;q=0.8,en;q=0.7',
-        'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache'
-    }
-    
-    req = urllib.request.Request(bypass_url, headers=headers)
-    return urllib.request.urlopen(req, timeout=30).read().decode('utf-8')
+def fetch(url):
+    u = url + (f"?v={random.randint(1000,9999)}" if '?' not in url else f"&v={random.randint(1000,9999)}")
+    return urllib.request.urlopen(urllib.request.Request(u, headers=HEADERS), timeout=30).read().decode('utf-8')
 
 def check_stock(html):
-    """
-    Check stock status using multiple methods for reliability.
-    Returns (is_in_stock: bool, reason: str)
-    """
-    # Method 1: Check for the Hebrew "Add to Cart" button text
-    has_add_to_cart = 'הוספה לסל' in html
-    
-    # Method 2: Check for out-of-stock indicators
-    has_out_of_stock_text = 'אזל מהמלאי' in html
-    
-    # Method 3: Check for WooCommerce stock CSS classes
-    has_outofstock_class = 'outofstock' in html.lower()
-    has_instock_class = 'instock' in html.lower()
-    
-    # Method 4: Check for the actual add-to-cart button element
-    has_cart_button = bool(re.search(r'<button[^>]*add.to.cart[^>]*>', html, re.IGNORECASE))
-    
-    # Method 5: Check for WooCommerce stock status meta
-    stock_meta = re.search(r'"availability"\s*:\s*"([^"]*)"', html)
-    
-    print(f"   🔍 Detection results:")
-    print(f"      - 'הוספה לסל' found: {has_add_to_cart}")
-    print(f"      - 'אזל מהמלאי' found: {has_out_of_stock_text}")
-    print(f"      - CSS class 'instock': {has_instock_class}")
-    print(f"      - CSS class 'outofstock': {has_outofstock_class}")
-    print(f"      - Add-to-cart button element: {has_cart_button}")
-    if stock_meta:
-        print(f"      - Schema.org availability: {stock_meta.group(1)}")
-    
-    # Decision logic: multiple signals
-    if has_out_of_stock_text or has_outofstock_class:
-        return False, "Out of stock (explicit out-of-stock indicator found)"
-    
-    if has_add_to_cart or has_cart_button or has_instock_class:
-        return True, "In stock (add-to-cart button or instock class found)"
-    
-    # Default: assume out of stock if no positive signal
-    return False, "Unknown - assuming out of stock (no positive stock signals)"
+    has_add = 'הוספה לסל' in html
+    has_out = 'אזל מהמלאי' in html
+    has_outclass = 'outofstock' in html.lower()
+    has_inclass = 'instock' in html.lower()
+    if has_out or has_outclass:
+        return False
+    if has_add or has_inclass:
+        return True
+    return False
 
-def extract_name(html):
-    """Extract book name from the page."""
-    # Try og:title first (most reliable)
-    match = re.search(r'<meta property="og:title" content="([^"]+)"', html)
-    if match:
-        name = match.group(1).replace(' - סיפור חוזר', '').strip()
-        if name:
-            return name
+def extract_info(html, book):
+    if not book.get('name'):
+        m = re.search(r'<meta property="og:title" content="([^"]+)"', html)
+        if not m: m = re.search(r'<title>(.*?)</title>', html)
+        if m:
+            name = m.group(1).replace(' - סיפור חוזר', '').replace('&#8211;', '-').strip()
+            if name: book['name'] = name
+    if not book.get('image'):
+        m = re.search(r'<meta property="og:image" content="([^"]+)"', html)
+        if m: book['image'] = m.group(1)
+    if not book.get('product_id'):
+        m = re.search(r'data-product_id="(\d+)"', html)
+        if not m: m = re.search(r'value="(\d+)"\s*name="add-to-cart"', html)
+        if m: book['product_id'] = m.group(1)
+
+def git_push():
+    try:
+        subprocess.run(['git', 'config', 'user.name', 'Bot'], check=True, capture_output=True)
+        subprocess.run(['git', 'config', 'user.email', 'bot@local'], check=True, capture_output=True)
+        subprocess.run(['git', 'add', 'books.json'], check=True, capture_output=True)
+        r = subprocess.run(['git', 'diff', '--staged', '--quiet'], capture_output=True)
+        if r.returncode != 0:  # there are changes
+            subprocess.run(['git', 'commit', '-m', 'Update stock [skip ci]'], check=True, capture_output=True)
+            subprocess.run(['git', 'push'], check=True, capture_output=True)
+            print("  📤 Pushed to GitHub")
+    except Exception as e:
+        print(f"  ⚠️ Git push error: {e}")
+
+def scan_once(books):
+    changed = False
+    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
-    # Try <title> tag
-    match = re.search(r'<title>(.*?)</title>', html)
-    if match:
-        name = match.group(1).replace(' - סיפור חוזר', '').replace('&#8211;', '-').strip()
-        if name:
-            return name
-    
-    # Try h1 product title (various class formats)
-    match = re.search(r'<h1[^>]*product_title[^>]*>(.*?)</h1>', html, re.DOTALL)
-    if match:
-        name = re.sub(r'<[^>]+>', '', match.group(1)).strip()
-        if name:
-            return name
-    
-    return None
-
-def extract_image(html):
-    """Extract book image from the page."""
-    match = re.search(r'<meta property="og:image" content="([^"]+)"', html)
-    if match:
-        return match.group(1)
-    return None
-
-def extract_product_id(html):
-    """Extract WooCommerce product ID."""
-    match = re.search(r'data-product_id="(\d+)"', html)
-    if not match:
-        match = re.search(r'value="(\d+)"\s*name="add-to-cart"', html)
-    if not match:
-        match = re.search(r'"product_id"\s*:\s*(\d+)', html)
-    if match:
-        return match.group(1)
-    return None
-
-def add_new_book(books, new_url):
-    """Add a new book URL to the tracking list."""
-    # Normalize URL
-    new_url = new_url.strip().rstrip('/')
-    
-    # Check if already tracked
-    for book in books:
-        existing = book['url'].strip().rstrip('/')
-        if existing == new_url:
-            print(f"⚠️  Book URL already tracked: {new_url}")
-            return False
-    
-    books.append({
-        "url": new_url if new_url.endswith('/') else new_url + '/',
-        "name": "",
-        "image": "",
-        "in_stock": False,
-        "last_checked": "",
-        "product_id": ""
-    })
-    print(f"✅ Added new book URL: {new_url}")
-    return True
-
-def main():
-    with open('books.json', 'r', encoding='utf-8') as f:
-        books = json.load(f)
-
-    # Check if a new book URL was provided via environment variable
-    new_book_url = os.environ.get('NEW_BOOK_URL', '').strip()
-    if new_book_url:
-        print(f"\n📚 Adding new book: {new_book_url}")
-        if add_new_book(books, new_book_url):
-            send_telegram_message(f"📚 <b>ספר חדש נוסף למעקב!</b>\n\n🔗 <a href='{new_book_url}'>לעמוד הספר</a>\n\nהמערכת תתחיל לעקוב אחר המלאי שלו אוטומטית.")
-
-    print(f"\n{'='*60}")
-    print(f"📖 ReBooks Tracker - Scanning {len(books)} books")
-    print(f"⏰ {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print(f"{'='*60}\n")
-
-    for i, book in enumerate(books, 1):
-        url = book['url']
-        print(f"\n📗 [{i}/{len(books)}] Checking: {book.get('name') or url}")
-        
+    for i, book in enumerate(books):
         try:
-            html = fetch_page(url)
-            print(f"   ✅ Page fetched successfully ({len(html)} chars)")
+            html = fetch(book['url'])
+            extract_info(html, book)
             
-            # Extract name if missing
-            if not book.get('name'):
-                name = extract_name(html)
-                if name:
-                    book['name'] = name
-                    print(f"   📝 Name extracted: {name}")
-                else:
-                    print(f"   ⚠️  Could not extract name")
+            in_stock = check_stock(html)
+            was_in_stock = book.get('in_stock', False)
             
-            # Extract image if missing
-            if not book.get('image'):
-                image = extract_image(html)
-                if image:
-                    book['image'] = image
-                    print(f"   🖼️  Image extracted: {image[:60]}...")
-                else:
-                    print(f"   ⚠️  No image found on page")
-
-            # Extract product ID if missing
-            if not book.get('product_id'):
-                pid = extract_product_id(html)
-                if pid:
-                    book['product_id'] = pid
-                    print(f"   🆔 Product ID extracted: {pid}")
-
-            # Check stock status
-            currently_in_stock, reason = check_stock(html)
-            previous_status = book.get('in_stock', False)
+            status = "✅ IN STOCK" if in_stock else "❌ out"
+            print(f"  [{i+1}/{len(books)}] {book.get('name', '???')}: {status}")
             
-            print(f"   📊 Stock status: {'✅ IN STOCK' if currently_in_stock else '❌ OUT OF STOCK'}")
-            print(f"      Reason: {reason}")
-            print(f"      Previous status: {'IN STOCK' if previous_status else 'OUT OF STOCK'}")
-            
-            # Notify on stock change (out -> in)
-            if currently_in_stock and not previous_status:
-                print(f"   🎉 STATUS CHANGED! Sending notification...")
-                msg = f"📗 <b>ספר חזר למלאי!</b>\n\nהספר: <b>{book.get('name', 'ספר ללא שם')}</b> זמין כעת לרכישה!\n"
-                msg += f"\n🔗 <a href='{url}'>לעמוד הספר</a>"
+            if in_stock and not was_in_stock:
+                print(f"  🎉 BACK IN STOCK! Notifying...")
+                msg = f"📗 <b>ספר חזר למלאי!</b>\n\n<b>{book.get('name', 'ספר')}</b> זמין לרכישה!\n"
+                msg += f"\n🔗 <a href='{book['url']}'>לעמוד הספר</a>"
                 if book.get('product_id'):
-                    buy_link = f"https://rebooks.org.il/?add-to-cart={book['product_id']}"
-                    msg += f"\n🛒 <a href='{buy_link}'>קליק אחד להוספה לעגלה וקנייה!</a>"
-                
-                send_telegram_message(msg)
+                    msg += f"\n🛒 <a href='https://rebooks.org.il/?add-to-cart={book['product_id']}'>קנה בקליק אחד!</a>"
+                send_telegram(msg)
+                changed = True
+            elif not in_stock and was_in_stock:
+                print(f"  📉 Went out of stock")
+                send_telegram(f"📕 <b>{book.get('name', 'ספר')}</b> אזל מהמלאי. נמשיך לעקוב!")
+                changed = True
             
-            # Notify on stock change (in -> out)
-            elif not currently_in_stock and previous_status:
-                print(f"   📉 Book went OUT OF STOCK. Sending notification...")
-                msg = f"📕 <b>ספר אזל מהמלאי</b>\n\nהספר: <b>{book.get('name', 'ספר ללא שם')}</b> כבר לא זמין.\n\nהמערכת תמשיך לעקוב ותודיע כשיחזור!"
-                send_telegram_message(msg)
-                
-            book['in_stock'] = currently_in_stock
-            book['last_checked'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            if book.get('in_stock') != in_stock:
+                changed = True
+            book['in_stock'] = in_stock
+            book['last_checked'] = now
             
         except Exception as e:
-            print(f"   ❌ Error checking: {e}")
+            print(f"  ❌ Error: {e}")
+    
+    return changed
 
-    # Write updated data back
+def save(books):
     with open('books.json', 'w', encoding='utf-8') as f:
         json.dump(books, f, ensure_ascii=False, indent=4)
+
+def run():
+    loop = '--loop' in sys.argv
+    start = time.time()
+    cycle = 0
     
-    print(f"\n{'='*60}")
-    print(f"✅ Scan complete! Updated books.json")
-    print(f"{'='*60}\n")
+    while True:
+        cycle += 1
+        with open('books.json', 'r', encoding='utf-8') as f:
+            books = json.load(f)
+        
+        elapsed = time.time() - start
+        if loop:
+            print(f"\n{'='*50}")
+            print(f"🔄 Cycle {cycle} | {len(books)} books | {elapsed/60:.0f}min elapsed")
+            print(f"{'='*50}")
+        else:
+            print(f"\n📖 Scanning {len(books)} books...")
+        
+        changed = scan_once(books)
+        save(books)
+        
+        if changed:
+            git_push()
+        
+        if not loop:
+            if changed:
+                git_push()
+            break
+        
+        if elapsed >= MAX_DURATION:
+            print("\n⏰ Max duration reached, exiting for restart")
+            git_push()  # final push
+            break
+        
+        print(f"  💤 Next check in {CHECK_INTERVAL}s...")
+        time.sleep(CHECK_INTERVAL)
 
 if __name__ == '__main__':
-    main()
+    run()

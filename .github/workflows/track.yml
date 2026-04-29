@@ -1,41 +1,37 @@
-name: Rebooks Tracker Scan
+name: Rebooks Tracker
 
 on:
   schedule:
-    # Run every 5 minutes
-    - cron: '*/5 * * * *'
+    - cron: '0 */6 * * *'
+  push:
+    paths:
+      - 'books.json'
   workflow_dispatch:
-    inputs:
-      new_book_url:
-        description: 'קישור לספר חדש להוספה (אופציונלי - השאר ריק לסריקה רגילה)'
-        required: false
-        default: ''
+
+concurrency:
+  group: tracker
+  cancel-in-progress: true
 
 jobs:
-  build:
+  scan:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-      
-    - name: Set up Python
-      uses: actions/setup-python@v4
+    - uses: actions/checkout@v3
+
+    - uses: actions/setup-python@v4
       with:
         python-version: '3.10'
-        
-    - name: Run tracker script
+
+    - name: Run continuous tracker
       env:
         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        NEW_BOOK_URL: ${{ github.event.inputs.new_book_url }}
+      run: python tracker.py --loop
+
+    - name: Final commit
+      if: always()
       run: |
-        python tracker.py
-        
-    - name: Commit updated books.json
-      run: |
-        git config --global user.name "Rebooks Tracker Bot"
-        git config --global user.email "bot@tracker.local"
+        git config user.name "Bot"
+        git config user.email "bot@local"
         git add books.json
-        git commit -m "Update stock status" || exit 0
-        git push
+        git diff --staged --quiet || (git commit -m "Final update [skip ci]" && git push)
